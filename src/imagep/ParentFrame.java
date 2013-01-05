@@ -1,11 +1,13 @@
 package imagep;
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyVetoException;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -114,12 +116,23 @@ public class ParentFrame extends JFrame{
                 break;
         }
         
-        if (returnVal == javax.swing.JFileChooser.APPROVE_OPTION && 
-                (fileOptionsValue.equals(ParentFrame.fileOptions.OPEN) || fileOptionsValue.equals(ParentFrame.fileOptions.IMPORT))) {
-            file= fileDialog.getSelectedFile();
-             
-            JOptionPane.showMessageDialog(this, file.toString());
-            ChildFrame newChild = new ChildFrame(file, tableDisplay);
+        if (returnVal == javax.swing.JFileChooser.APPROVE_OPTION)
+        {
+            file = fileDialog.getSelectedFile();
+            if((fileOptionsValue.equals(ParentFrame.fileOptions.OPEN) || fileOptionsValue.equals(ParentFrame.fileOptions.IMPORT)))
+            {
+                JOptionPane.showMessageDialog(this, file.toString());
+                ChildFrame newChild = new ChildFrame(file, tableDisplay);
+            }
+            else if(fileOptionsValue.equals(ParentFrame.fileOptions.SAVE) || fileOptionsValue.equals(ParentFrame.fileOptions.EXPORT))
+            {
+                try {
+                    ChildFrame cf = getActiveMDIChild();
+                    BufferedImage bi = cf.getImg();
+                    ImageIO.write(bi, "png", file);
+                } catch (IOException e) {
+                }
+            }
         }
     }
     
@@ -133,13 +146,14 @@ public class ParentFrame extends JFrame{
     /*
      * Returns active frame
      */
-    private void getActiveMDIChild()
+    private ChildFrame getActiveMDIChild()
     {
         JInternalFrame frames = tableDisplay.getSelectedFrame();
         ChildFrame cf;
         cf = (ChildFrame) frames;
-        cf.convertToGrayscale();
-        repaint();
+        return cf;
+        //cf.convertToGrayscale();
+        //repaint();
         //frames.repaint();       
     }
     
@@ -226,7 +240,8 @@ public class ParentFrame extends JFrame{
         return new AbstractAction("Czarno-Biały") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                getActiveMDIChild();
+                ChildFrame cf = getActiveMDIChild();
+                cf.convertToGrayscale();
             }
         };
     }
